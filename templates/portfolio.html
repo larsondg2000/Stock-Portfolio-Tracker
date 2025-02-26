@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}My Portfolio{% endblock %}
+
+{% block content %}
+<div class="rainbow-header mb-4">
+    <h1><i class="fas fa-chart-line me-2"></i>Stock Portfolio Tracker</h1>
+</div>
+
+<!-- Portfolio Summary -->
+<div class="section-header">
+    <h2><i class="fas fa-chart-pie me-2 text-primary"></i>Portfolio Summary</h2>
+</div>
+
+{% if stocks %}
+<div class="row mb-4">
+    <div class="col-md-5">
+        <div id="portfolio-pie-chart" class="chart"></div>
+    </div>
+    <div class="col-md-1"></div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Portfolio Value</h5>
+                        <h3 class="card-text text-success">{{ "$%.2f"|format(total_value) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Gain/Loss</h5>
+                        <h3 class="card-text {% if total_gain_loss > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "$%.2f"|format(total_gain_loss) }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Percent Gain/Loss</h5>
+                        <h3 class="card-text {% if total_gain_loss_percent > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ total_gain_loss_percent|round(2) }}%
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Stocks -->
+<div class="section-header">
+    <h2><i class="fas fa-wallet me-2 text-primary"></i>My Stocks</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Account</th>
+                        <th>Shares</th>
+                        <th>Cost Basis</th>
+                        <th>Current Price</th>
+                        <th>Total Value</th>
+                        <th>Portfolio %</th>
+                        <th>Gain/Loss</th>
+                        <th>Gain/Loss %</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr>
+                        <td>{{ stock.ticker }}</td>
+                        <td>{{ stock.account }}</td>
+                        <td>{{ "%.2f"|format(stock.shares) }}</td>
+                        <td>{{ "$%.2f"|format(stock.cost_basis) }}</td>
+                        <td>{{ "$%.2f"|format(stock.current_price) }}</td>
+                        <td>{{ "$%.2f"|format(stock.total_value) }}</td>
+                        <td>{{ (stock.total_value / total_value * 100)|round(2) }}%</td>
+                        <td class="{% if stock.gain_loss > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "$%.2f"|format(stock.gain_loss) }}
+                        </td>
+
+                        <td class="{% if stock.gain_loss_percent > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ stock.gain_loss_percent|round(2) }}%
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ stock.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{{ url_for('delete_stock', stock_id=stock.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this stock?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- Edit Modal for each stock -->
+                    <div class="modal fade" id="editModal{{ stock.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit {{ stock.ticker }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{ url_for('update_stock', stock_id=stock.id) }}" method="POST">
+                                        <div class="mb-3">
+                                            <label for="account{{ stock.id }}" class="form-label">Account</label>
+                                            <select class="form-select" id="account{{ stock.id }}" name="account">
+                                                <option value="Webull" {% if stock.account == 'Webull' %}selected{% endif %}>Webull</option>
+                                                <option value="Fidelity" {% if stock.account == 'Fidelity' %}selected{% endif %}>Fidelity</option>
+                                                <option value="401K" {% if stock.account == '401K' %}selected{% endif %}>401K</option>
+                                                <option value="IRA" {% if stock.account == 'IRA' %}selected{% endif %}>IRA</option>
+                                                <option value="HSA" {% if stock.account == 'HSA' %}selected{% endif %}>HSA</option>
+                                                <option value="Other" {% if stock.account == 'Other' %}selected{% endif %}>Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="shares{{ stock.id }}" class="form-label">Shares</label>
+                                            <input type="number" step="0.01" min="0" class="form-control" id="shares{{ stock.id }}" name="shares" value="{{ stock.shares }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cost_basis{{ stock.id }}" class="form-label">Cost Basis</label>
+                                            <input type="number" step="0.01" min="0" class="form-control" id="cost_basis{{ stock.id }}" name="cost_basis" value="{{ stock.cost_basis }}">
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">Update Stock</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Stock -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Stock</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('add_stock') }}" method="POST">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="ticker" class="form-label">Stock Ticker</label>
+                    <input type="text" class="form-control" id="ticker" name="ticker" placeholder="e.g., MSFT" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="account" class="form-label">Account</label>
+                    <select class="form-select" id="account" name="account">
+                        <option value="Webull">Webull</option>
+                        <option value="Fidelity">Fidelity</option>
+                        <option value="401K">401K</option>
+                        <option value="IRA">IRA</option>
+                        <option value="HSA">HSA</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="shares" class="form-label">Number of Shares</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" id="shares" name="shares" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="cost_basis" class="form-label">Cost Basis per Share</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" id="cost_basis" name="cost_basis" required>
+                </div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-2"></i>Add Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Performance Chart -->
+<div class="section-header">
+    <h2><i class="fas fa-chart-bar me-2 text-primary"></i>Performance by Ticker</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div id="gain-loss-chart" class="chart mb-4"></div>
+        <div id="percent-chart" class="chart"></div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-info">
+    <h4 class="alert-heading">No stocks yet!</h4>
+    <p>Your portfolio is empty. Add your first stock to get started.</p>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Your First Stock</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('add_stock') }}" method="POST">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="ticker" class="form-label">Stock Ticker</label>
+                    <input type="text" class="form-control" id="ticker" name="ticker" placeholder="e.g., MSFT" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="account" class="form-label">Account</label>
+                    <select class="form-select" id="account" name="account">
+                        <option value="Webull">Webull</option>
+                        <option value="Fidelity">Fidelity</option>
+                        <option value="HSA">HSA</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="shares" class="form-label">Number of Shares</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" id="shares" name="shares" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="cost_basis" class="form-label">Cost Basis per Share</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" id="cost_basis" name="cost_basis" required>
+                </div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-2"></i>Add Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if stocks %}
+<script>
+    // Render the pie chart
+    const pieChart = JSON.parse('{{ pie_chart|safe }}');
+    Plotly.newPlot('portfolio-pie-chart', pieChart.data, pieChart.layout, {responsive: true});
+
+    // Render the gain/loss charts separately
+    const gainLossChart = JSON.parse('{{ gain_loss_chart|safe }}');
+    const percentChart = JSON.parse('{{ percent_chart|safe }}');
+
+    Plotly.newPlot('gain-loss-chart', gainLossChart.data, gainLossChart.layout, {responsive: true});
+    Plotly.newPlot('percent-chart', percentChart.data, percentChart.layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-md-6 offset-md-3 text-center">
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to Portfolio Tracker</h1>
+            <div class="rainbow-divider my-4"></div>
+            <p class="lead">
+                Track your investments, monitor dividends, and analyze portfolio risk in one place.
+            </p>
+            <div class="mt-5">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+                <a href="{{ url_for('signup') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Sign Up
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Portfolio Tracking</h3>
+                <p class="card-text">Track your investments across multiple accounts with real-time market data.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-money-bill-wave fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Dividend Tracking</h3>
+                <p class="card-text">Monitor your dividend income and see upcoming payments from your investments.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Risk Analysis</h3>
+                <p class="card-text">Analyze your portfolio's risk and performance metrics to make better decisions.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

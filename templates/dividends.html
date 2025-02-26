@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Dividend Tracker{% endblock %}
+
+{% block content %}
+<div class="rainbow-header mb-4">
+    <h1><i class="fas fa-money-bill-wave me-2"></i>Dividend Tracker</h1>
+</div>
+
+{% if dividend_data %}
+<!-- Summary Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Yearly Dividends</h5>
+                <h3 class="card-text text-success">${{ "%.2f"|format(total_yearly_dividends) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Average Monthly Dividends</h5>
+                <h3 class="card-text text-success">${{ "%.2f"|format(average_monthly_dividends) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Average Dividend Yield</h5>
+                <h3 class="card-text text-success">{{ average_yield|round(2) }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-header">
+    <h2><i class="fas fa-usd me-2 text-primary"></i>My Dividend Stocks</h2>
+</div>
+
+<!-- Dividend Stocks Table and Pie Chart -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Shares</th>
+                                <th>Dividend Rate</th>
+                                <th>Yield</th>
+                                <th>Payout Ratio</th>
+                                <th>Ex-Dividend Date</th>
+                                <th>Yearly Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for div in dividend_data %}
+                            <tr>
+                                <td>{{ div.ticker }}</td>
+                                <td align="center">{{ "%.2f"|format(div.shares) }}</td>
+                                <td align="center">${{ "%.2f"|format(div.dividend_rate) }}</td>
+                                <td align="center">{{ div.dividend_yield|round(2) }}%</td>
+                                <td align="center">{{ div.payout_ratio|round(2) }}%</td>
+                                <td align="center">{{ div.ex_dividend_date }}</td>
+                                <td align="center">${{ "%.2f"|format(div.yearly_dividend_total) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div id="dividend-pie-chart" class="chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dividend Analysis Charts -->
+<div class="section-header">
+    <h2><i class="fas fa-chart-bar me-2 text-primary"></i>Dividend Analysis</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div id="yearly-div-chart" class="chart mb-4"></div>
+        <div id="yield-chart" class="chart mb-4"></div>
+        <div id="payout-chart" class="chart"></div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-info">
+    <h4 class="alert-heading">No dividend data available!</h4>
+    <p>It appears you don't have any dividend-paying stocks in your portfolio yet.</p>
+    <hr>
+    <p class="mb-0">Add dividend stocks to your portfolio to see dividend analysis and tracking.</p>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('portfolio') }}" class="btn btn-primary">
+        <i class="fas fa-wallet me-2"></i>Go to Portfolio
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if dividend_data %}
+<script>
+    // Render the pie chart
+    const pieChart = JSON.parse('{{ pie_chart|safe }}');
+    Plotly.newPlot('dividend-pie-chart', pieChart.data, pieChart.layout, {responsive: true});
+
+    // Render the dividend analysis charts
+    const yearlyDivChart = JSON.parse('{{ yearly_div_chart|safe }}');
+    const yieldChart = JSON.parse('{{ yield_chart|safe }}');
+    const payoutChart = JSON.parse('{{ payout_chart|safe }}');
+
+    Plotly.newPlot('yearly-div-chart', yearlyDivChart.data, yearlyDivChart.layout, {responsive: true});
+    Plotly.newPlot('yield-chart', yieldChart.data, yieldChart.layout, {responsive: true});
+    Plotly.newPlot('payout-chart', payoutChart.data, payoutChart.layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %}

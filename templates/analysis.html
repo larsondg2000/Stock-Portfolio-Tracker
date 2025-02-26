@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Analysis{% endblock %}
+
+{% block content %}
+<div class="rainbow-header mb-4">
+    <h1><i class="fas fa-chart-line me-2"></i>Portfolio Analysis</h1>
+</div>
+
+{% if has_data %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Annual Portfolio Risk</h5>
+                <h3 class="card-text text-success">{{ sd_p_annual|round(3) }}</h3>
+                <p class="text-muted small mt-2">Lower values indicate less volatility</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">Portfolio Sharpe Ratio</h5>
+                <h3 class="card-text text-success">{{ sharpe_ratio }}</h3>
+                <p class="text-muted small mt-2">Higher values indicate better risk-adjusted returns</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title">5-Year Cumulative Return</h5>
+                <h3 class="card-text {% if cum_return > 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ cum_return|round(2) }}%
+                </h3>
+                <p class="text-muted small mt-2">Total return over the past 5 years</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Returns Table -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Historical Returns</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Time Period</th>
+                        {% for item in returns_table %}
+                        <th>{{ item.Ticker }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>YTD</th>
+                        {% for item in returns_table %}
+                        <td class="{% if item.YTD > 0 %}text-success{% elif item.YTD < 0 %}text-danger{% endif %}">
+                            {% if item.YTD != None %}
+                                {{ item.YTD|round(2) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>1 Year</th>
+                        {% for item in returns_table %}
+                        <td class="{% if item['1 Year'] > 0 %}text-success{% elif item['1 Year'] < 0 %}text-danger{% endif %}">
+                            {% if item['1 Year'] != None %}
+                                {{ item['1 Year']|round(2) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>3 Year</th>
+                        {% for item in returns_table %}
+                        <td class="{% if item['3 Year'] > 0 %}text-success{% elif item['3 Year'] < 0 %}text-danger{% endif %}">
+                            {% if item['3 Year'] != None %}
+                                {{ item['3 Year']|round(2) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>5 Year</th>
+                        {% for item in returns_table %}
+                        <td class="{% if item['5 Year'] > 0 %}text-success{% elif item['5 Year'] < 0 %}text-danger{% endif %}">
+                            {% if item['5 Year'] != None %}
+                                {{ item['5 Year']|round(2) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Existing Risk Table -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Risk Analysis Table</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        {% for item in risk_table %}
+                        <th>{{ item.Ticker }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Risk</th>
+                        {% for item in risk_table %}
+                        <td>{{ item.Risk|round(3) }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <th>Sharpe Ratio</th>
+                        {% for item in risk_table %}
+                        <td>{{ item['Sharpe Ratio']|round(3) }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Risk Explained</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-7">
+                <p>This analysis assesses the risk associated with individual stocks and the overall portfolio by calculating key statistical measures such as variance, standard deviation, covariance, and weighted return. It utilizes historical data from Yahoo Finance and performs quantitative risk analysis.</p>
+                <h5 class="mt-4">Risk Calculation:</h5>
+                <ul>
+                    <li>Uses 5-year daily returns and generates a covariance matrix.</li>
+                    <li>Calculates portfolio variance and standard deviation on a daily and annual basis.</li>
+                    <li>Determines individual stock risks and aggregates them to evaluate overall portfolio risk.</li>
+                </ul>
+            </div>
+            <div class="col-md-5 text-center">
+                <img src="{{ url_for('static', filename='images/risk_formulas.png') }}" alt="Risk Formulas" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Sharpe Ratio Explained</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-7">
+                <p>The Sharpe ratio is a measure of risk-adjusted return, comparing an investment's excess return to its volatility. It helps investors understand the return of an investment compared to its risk, providing a way to compare different investments on a risk-adjusted basis.</p>
+                <h5 class="mt-4">Sharpe Ratio Calculation:</h5>
+                <ul>
+                    <li>Calculates the average return of the portfolio over the risk-free rate.</li>
+                    <li>Determines the standard deviation of the portfolio returns.</li>
+                    <li>Divides the excess return by the standard deviation to get the Sharpe ratio.</li>
+                    <li>A higher Sharpe ratio indicates better risk-adjusted performance.</li>
+                </ul>
+            </div>
+            <div class="col-md-5 text-center">
+                <img src="{{ url_for('static', filename='images/sharp.png') }}" alt="Sharpe Ratio Formula" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-info">
+    <h4 class="alert-heading">Not enough data for analysis!</h4>
+    <p>
+        {% if error %}
+        There was an error performing the analysis: {{ error }}
+        {% else %}
+        We need more stock data to perform risk analysis. Please add more stocks to your portfolio or ensure your stocks have sufficient historical data.
+        {% endif %}
+    </p>
+    <hr>
+    <p class="mb-0">Once you have a diverse portfolio with sufficient historical data, we'll be able to provide detailed risk analysis.</p>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('portfolio') }}" class="btn btn-primary">
+        <i class="fas fa-wallet me-2"></i>Go to Portfolio
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,7 @@
+yfinance~=0.2.54
+pandas~=2.2.3
+numpy~=2.2.3
+plotly~=6.0.0
+Flask~=3.1.0
+Flask-Login~=0.6.3
+Werkzeug~=3.1.3
