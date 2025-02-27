@@ -215,7 +215,7 @@ def portfolio():
             pie_chart = json.dumps(pie_fig, cls=plotly.utils.PlotlyJSONEncoder)
 
             # Create gain/loss charts
-            df_sorted = df.sort_values('total_value', ascending=False)
+            df_sorted = df.sort_values('gain_loss', ascending=False)
 
             # Gain/Loss bar chart
             gain_loss_colors = ['green' if x >= 0 else 'red' for x in df_sorted['gain_loss']]
